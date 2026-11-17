@@ -1,4 +1,18 @@
-# Forma CAD
+# Forma Knowledge Base
+
+当前 `知识库` 分支是纯知识库版本：运行时不启动、不连接 SolidWorks、Blender 或任何 CAD 执行器。核心流程是上传文件 → 结构化切片 → 本地向量索引 → 混合检索 → 可选模型问答。
+
+## 知识库检索
+
+- 支持 TXT、Markdown、HTML、CSV、JSON、LOG、XML、YAML、DOCX、XLSX、PPTX 和文本型 PDF。
+- 按标题、段落、页面、表格和工作表保留来源信息，分块默认约 1200 字符并保留上下文重叠。
+- 默认使用开源本地模型 `BAAI/bge-small-zh-v1.5`，通过 FastEmbed/ONNX Runtime 运行；首次使用会下载模型文件。
+- SQLite 保存文档、分块和向量；安装 `sqlite-vec` 时使用本机向量索引，同时保留 JSON 向量回退。
+- 关键词分词、SQLite FTS5 和向量相似度进行混合排序，精确短语、文件名和章节命中会增加权重。
+- 检索接口为 `POST /api/knowledge/search`，预览接口为 `POST /api/knowledge/preview`；结果包含 `name`、`page`、`section` 和原文片段。
+
+旧 CAD 工作台说明保留在下方作为历史文档，知识库运行路径不会加载其中的连接流程。
+
 
 Vue3 + Python 异步任务循环 + C# SolidWorks MCP 的本地 Windows AI 工作台。
 当前版本：1.0.0。

@@ -13,6 +13,7 @@ pytest-of-*/
 resources/mcp/
 resources/prerequisites/
 *.spec.local
+fastembed_cache/
 
 # Third-party reference checkouts with their own git history
 deepseek-harness/

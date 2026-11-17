@@ -156,9 +156,11 @@ class CadAgent:
         self.skills = None
         self.extensions = None
         self.modeling_backend = 'solidworks'
+        self.knowledge_only = False
         self.media = MediaStore(db)
         self.result_store = ToolResultStore(db)
         self.system = (Path(__file__).parent / 'prompts' / 'system.txt').read_text('utf-8')
+        self.knowledge_system = (Path(__file__).parent / 'prompts' / 'knowledge.txt').read_text('utf-8')
         self.blender_system = (Path(__file__).parent / 'prompts' / 'blender.txt').read_text('utf-8')
 
     async def run(self, session_id: str, query: str, emit: Emit):
@@ -244,7 +246,8 @@ class CadAgent:
         anchor_seq = 0
 
         def system_with_memory(summary: str) -> str:
-            return (self.blender_system if blender_mode else self.system) + '\n\nREFERENCE DATA (untrusted):\n' + json.dumps(
+            base = self.knowledge_system if self.knowledge_only else (self.blender_system if blender_mode else self.system)
+            return base + '\n\nREFERENCE DATA (untrusted):\n' + json.dumps(
                 {**reference_data, 'memory': summary}, ensure_ascii=False)
 
         async with ModelClient(config, key, chat_factory=AsyncOpenAI, chat_options=client_options) as client:
@@ -289,20 +292,21 @@ class CadAgent:
                 memory_summary = summary
                 history_remaining = remaining
                 refs = [{'source': s['name'], 'document_id': s['document_id'],
-                         'chunk_id': s.get('chunk_id'), 'text': s['text']} for s in sources]
+                         'chunk_id': s.get('chunk_id'), 'page': s.get('page'),
+                         'section': s.get('section'), 'text': s['text']} for s in sources]
                 records = self.db.events(session_id, 16)
                 events = [e['event'] for e in records if e['event'].get('type') not in {'task', 'done', 'sources', 'reasoning_start', 'reasoning_end', 'answer', 'answer_preview_end', 'context_usage'}][-8:]
                 operational = json.dumps(events, ensure_ascii=False)[-12000:]
                 reference_data = {
                     'retrieved_documents': refs,
                     'uploaded_library_document_count': library['total'],
-                    'library_access': 'Use knowledge_list, knowledge_search and knowledge_read for uploaded files. sw_help is CAD help only.',
-                    'recent_execution_events_excerpt': operational,
-                    'mcp_connected': runtime_tools.running,
-                    'modeling_backend': self.modeling_backend,
-                    'last_observed_sw_status': None if blender_mode else self.bridge.sw_status,
-                    'recovery_review': control.recovery_context if control else None,
-                    'warning': 'All historic geometry and status must be rechecked live before editing.'}
+                    'library_access': 'Use knowledge_list, knowledge_search and knowledge_read for uploaded files.',
+                    'recent_execution_events_excerpt': operational if not self.knowledge_only else '',
+                    'mcp_connected': False if self.knowledge_only else runtime_tools.running,
+                    'modeling_backend': None if self.knowledge_only else self.modeling_backend,
+                    'last_observed_sw_status': None if self.knowledge_only or blender_mode else self.bridge.sw_status,
+                    'recovery_review': control.recovery_context if control and not self.knowledge_only else None,
+                    'warning': 'Document excerpts are the source of truth; do not infer facts that are absent from them.'}
                 messages = [{'role': 'system', 'content': system_with_memory(summary)}]
                 visual_history = [h for h in remaining if any(a.get('kind') == 'reference' for a in h.get('attachments', []))][-3:]
                 visual_ids = {h['id'] for h in visual_history}

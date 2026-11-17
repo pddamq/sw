@@ -40,7 +40,7 @@ class Settings(ModelOptions):
     mcp_command: str = ''
     mcp_args: list[str] = Field(default_factory=list)
     mcp_cwd: str = ''
-    embedding_model: str = ''
+    embedding_model: str = 'local:BAAI/bge-small-zh-v1.5'
     embedding_base_url: str = ''
 
     @model_validator(mode='after')
@@ -164,6 +164,10 @@ class SettingsStore:
             except (ValueError, UnicodeError, OSError):
                 self.recovery_pending = True
                 self.warnings.append('配置文件读取失败，原文件保持不变；正在尝试备份或默认设置。')
+        if not self.value.embedding_model:
+            # Existing 1.0 configs used an empty remote embedding field. The
+            # knowledge edition defaults those installations to local retrieval.
+            self.value.embedding_model = 'local:BAAI/bge-small-zh-v1.5'
         self.credential_unreadable = False
         if self.encrypted_key:
             try:
@@ -217,6 +221,8 @@ class SettingsStore:
         if isinstance(api_key, str):
             api_key = api_key.strip()
         new_value = Settings(**{**self.value.model_dump(), **changes})
+        if not new_value.embedding_model:
+            new_value.embedding_model = 'local:BAAI/bge-small-zh-v1.5'
         encrypted = '' if clear else self.encrypted_key
         if api_key:
             encrypted = protect(api_key)

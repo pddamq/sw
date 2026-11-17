@@ -74,6 +74,7 @@ class ApprovalDecision(BaseModel):
 
 def create_app(db: Database | None = None, settings: SettingsStore | None = None,
                bridge: McpBridge | None = None, token: str = TOKEN) -> FastAPI:
+    knowledge_only = bridge is None
     db = db or Database()
     settings = settings or SettingsStore()
     profiles = ProfileStore(settings)
@@ -82,6 +83,7 @@ def create_app(db: Database | None = None, settings: SettingsStore | None = None
     knowledge = KnowledgeBase(db, settings)
     media = MediaStore(db)
     agent = CadAgent(db, settings, bridge, knowledge)
+    agent.knowledge_only = knowledge_only
     skills = SkillStore(db)
     servers = ServerStore(db)
     extensions = ExternalMcpHub(servers, settings.path.parent / 'extensions')
@@ -120,7 +122,7 @@ def create_app(db: Database | None = None, settings: SettingsStore | None = None
     async def lifespan(app):
         db.recover_interrupted_runs()
         boot_task = None
-        if settings.value.auto_connect and is_bundled_executor(settings.value) and not bridge.running:
+        if not knowledge_only and settings.value.auto_connect and is_bundled_executor(settings.value) and not bridge.running:
             startup['connecting'] = True
             boot_task = asyncio.create_task(connect_bundled(), name='bundled-executor-startup')
         try:
@@ -137,6 +139,7 @@ def create_app(db: Database | None = None, settings: SettingsStore | None = None
                 except (asyncio.TimeoutError, asyncio.CancelledError):
                     pass
             await extensions.close()
+            # Knowledge mode never starts or attaches a CAD executor.
             await bridge.disconnect()
 
     app = FastAPI(title='Forma CAD', version=__version__, lifespan=lifespan,
@@ -599,25 +602,18 @@ def create_app(db: Database | None = None, settings: SettingsStore | None = None
 
     @app.get('/api/diagnostics')
     async def diagnostics():
-        installed = []
-        if sys.platform == 'win32':
-            import winreg
-            for version in range(2023, 2028):
-                try:
-                    with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, f'SOFTWARE\\SolidWorks\\SOLIDWORKS {version}\\Setup',
-                                        0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY) as reg:
-                        installed.append({'version': version, 'path': winreg.QueryValueEx(reg, 'SolidWorks Folder')[0]})
-                except OSError:
-                    pass
         return {'app_version': __version__, 'platform': sys.platform, 'python': sys.version.split()[0],
                 'desktop_runtime': await asyncio.to_thread(startup_report),
                 'data_dir': str(DATA_DIR), 'frontend_built': FRONTEND.exists(),
-                'bundled_mcp': (ROOT / 'resources' / 'mcp' / 'solidworks-mcp.exe').exists(),
-                'solidworks_installations': installed,
-                'mcp_launch': launch_diagnostics(settings.value),
-                'mcp': {'running': bridge.running, 'tools': len(bridge.tools), 'detail': bridge.detail},
-                'sw2023_compatibility': '未认证：上游真机基线为 SW2025 SP1.2，需在目标机器逐项验证',
-                'retrieval_mode': 'hybrid' if settings.value.embedding_model else 'bm25',
+                'knowledge_mode': knowledge_only,
+                'bundled_mcp': False if knowledge_only else (ROOT / 'resources' / 'mcp' / 'solidworks-mcp.exe').exists(),
+                'mcp_launch': launch_diagnostics(settings.value) if not knowledge_only else {'mode': 'disabled'},
+                'mcp': {'running': False if knowledge_only else bridge.running,
+                        'tools': 0 if knowledge_only else len(bridge.tools),
+                        'detail': '知识库模式已禁用 CAD 连接' if knowledge_only else bridge.detail},
+                'solidworks': {'connected': False, 'detail': '知识库模式已禁用 CAD 连接'},
+                'retrieval_mode': 'hybrid-local' if settings.value.embedding_model.startswith('local:') else ('hybrid' if settings.value.embedding_model else 'bm25'),
+                'embedding_model': settings.value.embedding_model,
                 'task_running': execution_lock.locked()}
 
     @app.post('/api/tasks/cancel')

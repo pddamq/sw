@@ -9,6 +9,11 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
+try:
+    import sqlite_vec
+except ImportError:
+    sqlite_vec = None
+
 from .config import DATA_DIR
 
 
@@ -69,16 +74,36 @@ class Database:
                 CREATE TABLE IF NOT EXISTS chunks (
                     id INTEGER PRIMARY KEY, document_id TEXT NOT NULL, text TEXT NOT NULL,
                     embedding TEXT, embedding_model TEXT,
+                    page INTEGER, section TEXT NOT NULL DEFAULT '', chunk_index INTEGER NOT NULL DEFAULT 0,
                     FOREIGN KEY(document_id) REFERENCES knowledge(id) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS chunks_document_index ON chunks(document_id,chunk_index);
+                CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
+                    text, name, section, tokenize='unicode61 remove_diacritics 2'
                 );
             ''')
             run_columns = {row['name'] for row in conn.execute('PRAGMA table_info(runs)')}
             if 'modeling_backend' not in run_columns:
                 conn.execute("ALTER TABLE runs ADD COLUMN modeling_backend TEXT NOT NULL DEFAULT 'solidworks'")
-            columns = {row['name'] for row in conn.execute('PRAGMA table_info(events)')}
-            if 'task_id' not in columns:
+            event_columns = {row['name'] for row in conn.execute('PRAGMA table_info(events)')}
+            if 'task_id' not in event_columns:
                 conn.execute('ALTER TABLE events ADD COLUMN task_id TEXT')
             conn.execute('CREATE INDEX IF NOT EXISTS events_run ON events(task_id,id)')
+            chunk_columns = {row['name'] for row in conn.execute('PRAGMA table_info(chunks)')}
+            if 'page' not in chunk_columns:
+                conn.execute('ALTER TABLE chunks ADD COLUMN page INTEGER')
+            if 'section' not in chunk_columns:
+                conn.execute("ALTER TABLE chunks ADD COLUMN section TEXT NOT NULL DEFAULT ''")
+            if 'chunk_index' not in chunk_columns:
+                conn.execute('ALTER TABLE chunks ADD COLUMN chunk_index INTEGER NOT NULL DEFAULT 0')
+            # Older databases have no FTS rows. Rebuild the auxiliary index once;
+            # the source of truth remains the chunks table.
+            fts_count = conn.execute('SELECT COUNT(*) FROM chunks_fts').fetchone()[0]
+            if fts_count == 0:
+                conn.execute('DELETE FROM chunks_fts')
+                conn.execute("""INSERT INTO chunks_fts(rowid,text,name,section)
+                                SELECT c.id,c.text,k.name,c.section
+                                FROM chunks c JOIN knowledge k ON k.id=c.document_id""")
 
     @contextmanager
     def connect(self):
@@ -86,6 +111,13 @@ class Database:
             conn = sqlite3.connect(self.path, timeout=15)
             conn.row_factory = sqlite3.Row
             conn.execute('PRAGMA foreign_keys=ON')
+            if sqlite_vec is not None:
+                try:
+                    conn.enable_load_extension(True)
+                    sqlite_vec.load(conn)
+                    conn.enable_load_extension(False)
+                except (AttributeError, OSError, sqlite3.OperationalError):
+                    pass
             try:
                 yield conn
                 conn.commit()
@@ -250,13 +282,36 @@ class Database:
         with self.connect() as conn:
             return [dict(r) for r in conn.execute('SELECT * FROM knowledge ORDER BY created_at DESC')]
 
-    def add_document(self, name: str, chunks: list[str], vectors: list[list[float]] | None, model: str):
+    def add_document(self, name: str, chunks: list[str], vectors: list[list[float]] | None, model: str,
+                     metadata: list[dict] | None = None):
         item = dict(id=uuid.uuid4().hex, name=name, chunks=len(chunks), created_at=now())
+        metadata = metadata or [{} for _ in chunks]
+        if len(metadata) != len(chunks):
+            raise ValueError('分块元数据数量与文本数量不一致。')
         with self.connect() as conn:
             conn.execute('INSERT INTO knowledge VALUES(:id,:name,:chunks,:created_at)', item)
-            conn.executemany('INSERT INTO chunks(document_id,text,embedding,embedding_model) VALUES(?,?,?,?)',
-                             [(item['id'], text, json.dumps(vectors[i]) if vectors else None, model)
-                              for i, text in enumerate(chunks)])
+            rows = []
+            for i, text in enumerate(chunks):
+                info = metadata[i]
+                rows.append((item['id'], text, json.dumps(vectors[i]) if vectors else None, model,
+                             info.get('page'), str(info.get('section') or ''), i))
+            conn.executemany(
+                'INSERT INTO chunks(document_id,text,embedding,embedding_model,page,section,chunk_index) VALUES(?,?,?,?,?,?,?)',
+                rows)
+            ids = [row[0] for row in conn.execute('SELECT id FROM chunks WHERE document_id=? ORDER BY chunk_index', (item['id'],))]
+            conn.executemany('INSERT INTO chunks_fts(rowid,text,name,section) VALUES(?,?,?,?)',
+                             [(chunk_id, text, name, str(metadata[i].get('section') or ''))
+                              for i, (chunk_id, text) in enumerate(zip(ids, chunks))])
+            if vectors and sqlite_vec is not None:
+                dimension = len(vectors[0])
+                table = f'vectors_{dimension}'
+                try:
+                    conn.execute(f'CREATE VIRTUAL TABLE IF NOT EXISTS {table} USING vec0(embedding float[{dimension}])')
+                    conn.executemany(f'INSERT INTO {table}(rowid,embedding) VALUES(?,?)',
+                                     [(chunk_id, json.dumps(vector)) for chunk_id, vector in zip(ids, vectors)])
+                except sqlite3.OperationalError:
+                    # JSON vectors remain available as a portable fallback.
+                    pass
         return item
 
     def knowledge_page(self, query: str = '', offset: int = 0, limit: int = 20) -> dict:
@@ -289,4 +344,30 @@ class Database:
 
     def delete_document(self, document_id: str):
         with self.connect() as conn:
+            chunk_ids = [row[0] for row in conn.execute('SELECT id FROM chunks WHERE document_id=?', (document_id,))]
+            if chunk_ids:
+                conn.executemany('DELETE FROM chunks_fts WHERE rowid=?', [(chunk_id,) for chunk_id in chunk_ids])
+                vector_tables = [row[0] for row in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name GLOB 'vectors_[0-9]*'")]
+                for table in vector_tables:
+                    conn.executemany(f'DELETE FROM {table} WHERE rowid=?', [(chunk_id,) for chunk_id in chunk_ids])
             conn.execute('DELETE FROM knowledge WHERE id=?', (document_id,))
+
+    def vector_candidates(self, vector: list[float], limit: int = 80) -> list[dict]:
+        dimension = len(vector)
+        table = f'vectors_{dimension}'
+        with self.connect() as conn:
+            exists = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone()
+            if not exists:
+                return []
+            rows = conn.execute(f'SELECT rowid,distance FROM {table} WHERE embedding MATCH ? AND k=?',
+                                (json.dumps(vector), limit)).fetchall()
+            return [{'id': row['rowid'], 'distance': float(row['distance'])} for row in rows]
+        with self.connect() as conn:
+            rows = conn.execute(
+                """SELECT c.*, k.name, bm25(chunks_fts, 8.0, 2.0, 1.0) AS rank
+                   FROM chunks_fts JOIN chunks c ON c.id=chunks_fts.rowid
+                   JOIN knowledge k ON k.id=c.document_id
+                   WHERE chunks_fts MATCH ? ORDER BY rank LIMIT ?""",
+                (query, limit)).fetchall()
+            return [dict(row) for row in rows]

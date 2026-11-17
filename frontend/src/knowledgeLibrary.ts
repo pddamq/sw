@@ -61,8 +61,8 @@ export async function importKnowledgeFiles(
     let result: ImportResult;
     if (stopped || blocked()) {
       result = { path, status: 'skipped', detail: stopped || '当前任务正在执行，请结束后重新选择此文件导入。' };
-    } else if (!/\.(txt|md|html?|pdf)$/i.test(file.name)) {
-      result = { path, status: 'skipped', detail: '格式未支持；支持 TXT、Markdown、HTML 和文本型 PDF。' };
+    } else if (!/\.(txt|md|html?|pdf|csv|json|log|xml|ya?ml|docx|xlsx|xlsm|pptx)$/i.test(file.name)) {
+      result = { path, status: 'skipped', detail: '格式未支持；支持 TXT、Markdown、HTML、CSV、JSON、XML、YAML、DOCX、XLSX、PPTX 和文本型 PDF。' };
     } else if (file.size > 20 * 1024 * 1024) {
       result = { path, status: 'skipped', detail: '文件超过 20 MB。' };
     } else {

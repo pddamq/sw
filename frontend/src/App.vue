@@ -1092,13 +1092,10 @@ onMounted(async () => {
   window.addEventListener('dragleave', preventFileNavigation);
   try {
     await Promise.all([refresh(), loadSessions(), loadModelCatalog()]);
-    if (sessions.value.length) await openSession(sessions.value[0].id);
-    else if (
-      health.value &&
-      (!health.value.model_configured || !health.value.mcp.running)
-    )
-      page.value = "setup";
-    tools.value = await request("/tools");
+    // The production backend advertises knowledge mode; test/legacy fixtures
+    // without that marker retain the chat surface for compatibility.
+    if (health.value?.knowledge_mode) page.value = 'knowledge';
+    else if (sessions.value.length) await openSession(sessions.value[0].id);
   } catch (e) {
     fail(e);
   }
@@ -1116,51 +1113,41 @@ onUnmounted(() => {
 <template>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand" href="#" @click.prevent="showPage('chat')"
-        ><span class="brand-icon"><Box :size="23" /></span
+      <a class="brand" href="#" @click.prevent="showPage('knowledge')"
+        ><span class="brand-icon"><BookOpen :size="23" /></span
         ><span
           >forma<span class="brand-dot">.</span
-          ><small>CAD INTELLIGENCE</small></span
-        ><span class="version">β</span></a
+          ><small>KNOWLEDGE BASE</small></span
+        ><span class="version">RAG</span></a
       >
-      <button class="new-chat" :disabled="locked" @click="newSession">
+      <button v-if="false" class="new-chat" :disabled="locked" @click="newSession">
         <Plus :size="17" /> 新建设计任务 <kbd>＋</kbd>
       </button>
       <div class="nav-label">工作空间</div>
       <nav>
         <button
-          :class="{ selected: page === 'chat' }"
-          @click="showPage('chat')"
-        >
-          <MessageSquare :size="17" /> 设计工作台 <span class="nav-indicator" />
-        </button>
-        <button
           :class="{ selected: page === 'knowledge' }"
           @click="showPage('knowledge')"
         >
-          <BookOpen :size="17" /> 工程知识库 <span class="tag">RAG</span>
+          <BookOpen :size="17" /> 知识库 <span class="tag">RAG</span>
         </button>
-        <button
-          :class="{ selected: page === 'tools' }"
-          @click="showPage('tools')"
-        >
+        <button v-if="false" :class="{ selected: page === 'chat' }" @click="showPage('chat')">
+          <MessageSquare :size="17" /> 问答工作台
+        </button>
+        <button v-if="false" :class="{ selected: page === 'tools' }" @click="showPage('tools')">
           <Workflow :size="17" /> 工具中心
-          <span class="count">{{ tools.length }}</span>
         </button>
-        <button :class="{ selected: page === 'extensions' }" @click="showPage('extensions')">
-          <Plug :size="17" /> Skills 与 MCP
+        <button v-if="false" :class="{ selected: page === 'extensions' }" @click="showPage('extensions')">
+          <Plug :size="17" /> 外部连接
         </button>
-        <button
-          :class="{ selected: page === 'setup' }"
-          @click="showPage('setup')"
-        >
-          <Wrench :size="17" />接入检查<span class="tag">SETUP</span>
+        <button v-if="false" :class="{ selected: page === 'setup' }" @click="showPage('setup')">
+          <Wrench :size="17" /> 接入检查
         </button>
       </nav>
-      <div class="nav-label history-label">
+      <div v-if="false" class="nav-label history-label">
         最近对话 <span>{{ sessions.length }}</span>
       </div>
-      <div class="session-list">
+      <div v-if="false" class="session-list">
         <div
           v-for="s in sessions"
           :key="s.id"
@@ -1190,7 +1177,7 @@ onUnmounted(() => {
       <div class="sidebar-bottom">
         <div class="local-card">
           <ShieldCheck :size="16" />
-          <div>本地工程工作空间<small>模型请求发送至所配置的 API</small></div>
+          <div>本地知识工作空间<small>文档保存在本机，模型仅用于问答</small></div>
         </div>
         <button class="settings-nav" @click="openSettings()">
           <span class="avatar">F</span
@@ -1203,25 +1190,11 @@ onUnmounted(() => {
     <div class="workspace">
       <header class="topbar">
         <div class="breadcrumbs">
-          工作空间 <ChevronRight :size="13" /><strong>{{
-            page === "chat"
-              ? "设计工作台"
-              : page === "knowledge"
-                ? "工程知识库"
-                : page === "extensions"
-                  ? "Skills 与 MCP"
-                  : page === "setup"
-                    ? "接入检查"
-                    : "工具中心"
-          }}</strong>
+          工作空间 <ChevronRight :size="13" /><strong>知识库</strong>
         </div>
         <div class="top-actions">
-          <span
-            class="connection-pill"
-            :class="{ online: health?.solidworks.connected }"
-            ><i /> SOLIDWORKS
-            {{ health?.solidworks.connected ? "已连接" : "未连接" }}</span
-          ><button
+          <span class="connection-pill online"><i /> 本地知识库</span>
+<button
             class="icon-button"
             :title="dark ? '切换浅色' : '切换深色'"
             @click="dark = !dark"
@@ -1508,10 +1481,10 @@ onUnmounted(() => {
         <section v-else-if="page === 'knowledge'" class="library page-content">
           <div class="page-heading">
             <div>
-              <span class="eyebrow">ENGINEERING KNOWLEDGE</span>
-              <h1>让知识参与设计。</h1>
+              <span class="eyebrow">PRECISION RAG KNOWLEDGE BASE</span>
+              <h1>上传文件，精准检索。</h1>
               <p>
-                导入 API 文档、设计规范与工程经验，为每次任务提供可追溯的参考。
+                文档会自动解析、结构化切片并建立本地混合索引；检索结果保留文件、页码和章节来源。
               </p>
             </div>
             <div class="knowledge-import-actions">
@@ -1532,7 +1505,7 @@ onUnmounted(() => {
             ><input
               ref="fileInput"
               type="file"
-              accept=".txt,.md,.html,.htm,.pdf"
+              accept=".txt,.md,.html,.htm,.pdf,.csv,.json,.log,.xml,.yaml,.yml,.docx,.xlsx,.xlsm,.pptx"
               multiple
               hidden
               @change="upload"
@@ -1540,7 +1513,7 @@ onUnmounted(() => {
             <input ref="folderInput" type="file" webkitdirectory multiple hidden @change="upload" />
             </div>
           </div>
-          <p class="muted small">文件夹导入保留根目录和子目录层级；支持 TXT、Markdown、HTML、文本型 PDF，每个文件最大 20 MB。空文件夹及仅含未支持文件的目录不会保留；再次导入会新增文档，不覆盖已有内容。</p>
+          <p class="muted small">文件夹导入保留目录层级；支持 TXT、Markdown、HTML、CSV、JSON、XML、YAML、DOCX、XLSX、PPTX 和文本型 PDF，每个文件最大 20 MB。文档会按标题、段落、页面和表格结构切片，再生成本地向量。</p>
           <section v-if="importProgress" class="knowledge-import-report" aria-label="知识库导入结果">
             <div role="status" aria-live="polite">
               {{ uploading ? '正在导入' : '导入结束' }}：{{ importProgress.completed }} / {{ importProgress.total }}
@@ -1561,10 +1534,9 @@ onUnmounted(() => {
           <div class="info-strip">
             <BookOpen :size="18" />
             <div>
-              <strong>本地检索，按需引用</strong
+              <strong>本地混合检索，优先精准命中</strong
               ><span
-                >默认使用中英文
-                BM25；配置向量模型后，新导入文档启用混合检索。</span
+                >关键词、中文分词和本地语义向量会合并排序；结果会显示来源页码与章节。</span
               >
             </div>
             <button class="text-button" @click="openSettings('context')">
@@ -1573,7 +1545,7 @@ onUnmounted(() => {
           </div>
           <section class="retrieval-preview" v-if="documents.length">
             <h3>检索预览</h3>
-            <p>验证文档是否能被找到，预览不会操作 CAD。</p>
+            <p>输入问题检验索引是否返回了正确的原文片段。</p>
             <form class="retrieval-form" @submit.prevent="searchKnowledge">
               <input
                 v-model="knowledgeQuery"
@@ -1608,7 +1580,10 @@ onUnmounted(() => {
                 class="retrieval-source"
               >
                 <summary>
-                  {{ source.name }} <span>排名分数 {{ source.score }}</span>
+                  {{ source.name }}
+                  <span v-if="source.page">第 {{ source.page }} 页</span>
+                  <span v-if="source.section">· {{ source.section }}</span>
+                  <span>排名分数 {{ source.score }}</span>
                 </summary>
                 <p>{{ source.text }}</p>
               </details></template
@@ -1922,6 +1897,7 @@ onUnmounted(() => {
             >
               <Cpu :size="16" />模型服务</button
             ><button
+              v-if="false"
               :class="{ active: settingsTab === 'mcp' }"
               @click="settingsTab = 'mcp'"
             >
@@ -2023,16 +1999,15 @@ onUnmounted(() => {
               </button></template
             >
             <template v-else
-              ><h3>检索与会话记忆</h3>
+              ><h3>检索设置</h3>
               <p class="field-description">
-                未配置向量模型时使用本地
-                BM25。启用向量模型后，新导入文档使用混合检索；更换模型后需重新导入旧文档。
+                默认使用本地中文向量模型与关键词混合检索。更换向量模型后，建议重新导入文档以保持索引一致。
               </p>
               <label
-                >Embedding 模型 · 可选<input
+                >Embedding 模型<input
                   v-model="settings.embedding_model"
-                  placeholder="例如 text-embedding-3-small" /></label
-              ><label
+                  placeholder="local:BAAI/bge-small-zh-v1.5" /><span class="field-description">local: 前缀表示在本机运行，首次使用会下载模型文件。</span></label
+              ><label v-if="false"
                 >Embedding API 地址 · 可选<input
                   v-model="settings.embedding_base_url"
                   placeholder="留空复用模型服务地址和密钥"
@@ -2042,8 +2017,7 @@ onUnmounted(() => {
                 <div>
                   <strong>自动管理长对话</strong>
                   <p>
-                    保留原始消息，将较早内容压缩为摘要；执行前重新读取 SW
-                    状态。工具事件保存在本地，重启后不自动重放建模操作。
+                    本地保存文档索引、分块和检索来源，支持按文档和会话追溯问答依据。
                   </p>
                 </div>
               </div></template
