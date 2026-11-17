@@ -1,0 +1,5 @@
+.question-history { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--stroke); border-radius: 10px; background: var(--panel); color: var(--text); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.question-history > strong { display: block; margin-bottom: 8px; }
+.question-history details + details { margin-top: 10px; }
+.question-history summary { cursor: pointer; white-space: pre-wrap; }
+.question-history p { white-space: pre-wrap; margin: 8px 0; }

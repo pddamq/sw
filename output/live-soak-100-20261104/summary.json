@@ -1,0 +1,28 @@
+{
+  "started_utc": "2026-11-04T14:01:59.872133+00:00",
+  "model": "deepseek-v4.1-flash",
+  "base_url": "https://xuseny.online/v1",
+  "requested_user_turns": 100,
+  "completed_user_turns": 100,
+  "passed_turns": 100,
+  "failed_turns": [],
+  "totals": {
+    "simulated_calls": 330,
+    "requests": 244,
+    "stream_requests": 230,
+    "request_headers_received": 244,
+    "summary_cycles": 14,
+    "history_faults_injected": 5,
+    "summary_requests": 14
+  },
+  "finished": true,
+  "elapsed_seconds": 1904.3,
+  "latency_seconds": {
+    "median": 16.49,
+    "p95": 38.69,
+    "max": 54.8
+  },
+  "real_cad_operations": 0,
+  "same_session_all_turns": true,
+  "limits": "Live provider and real CadAgent; synthetic CAD execution, no geometry or installation validation."
+}

@@ -1,0 +1,19 @@
+pip-*/
+.venv/
+node_modules/
+frontend/dist/
+dist/
+build/
+__pycache__/
+.pytest_cache/
+pytest-of-*/
+*.pyc
+*.log
+.env
+resources/mcp/
+resources/prerequisites/
+*.spec.local
+
+# Third-party reference checkouts with their own git history
+deepseek-harness/
+vendor/solidworks-mcp/

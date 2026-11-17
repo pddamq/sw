@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/soheil-mp/solidworks-mcp",
+  "commit": "79fb529b67ca4a0587e5570024a772fad0b2c14d",
+  "license": "MIT",
+  "retrieved": "2026-11-03",
+  "tested_by_upstream": "SOLIDWORKS 2025 SP1.2",
+  "local_cad_verification": "not performed"
+}

@@ -1,0 +1,146 @@
+/* Keep reply text selectable in both the browser and the desktop WebView. */
+.message-body .prose,
+.message-body .prose *,
+.message-body .reasoning-detail,
+.message-body .reasoning-detail *,
+.message-body .tool-line-detail,
+.message-body .tool-line-detail * {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.diagnostic-export {
+  border: 1px solid var(--stroke);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.diagnostic-export:hover {
+  color: var(--text);
+  background: var(--raised);
+}
+
+.session-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.task-history {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--stroke);
+}
+.task-history label {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+  margin-bottom: 8px;
+}
+.task-history select {
+  width: 100%;
+  min-width: 0;
+  background: var(--input);
+  color: var(--text);
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+  font-size: 10px;
+  padding: 8px;
+  outline: none;
+}
+.task-state {
+  display: inline-block;
+  margin-top: 11px;
+  font-size: 9px;
+  color: var(--accent);
+  padding: 3px 6px;
+  background: var(--accent-soft);
+  border-radius: 3px;
+}
+.task-state[data-status="failed"],
+.task-state[data-status="interrupted"] {
+  color: var(--danger);
+  background: var(--surface);
+}
+.task-history p {
+  font-size: 9px;
+  color: var(--muted);
+  line-height: 1.9;
+  margin-bottom: 0;
+}
+.connection-warning,
+.retrieval-warning {
+  color: var(--danger);
+  font-size: 10px;
+  line-height: 1.8;
+}
+.compatibility-note {
+  color: var(--dim);
+  font-size: 9px;
+  line-height: 1.8;
+  margin-bottom: 15px;
+}
+.retrieval-preview {
+  border: 1px solid var(--stroke);
+  border-radius: 7px;
+  padding: 18px;
+  background: var(--panel);
+  margin-bottom: 25px;
+}
+.retrieval-preview h3 {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+.retrieval-preview > p {
+  font-size: 10px;
+  color: var(--muted);
+}
+.retrieval-form {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+}
+.retrieval-form input {
+  flex: 1;
+  min-width: 0;
+  background: var(--input);
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+  padding: 10px;
+  color: var(--text);
+  font-size: 11px;
+}
+.retrieval-form input:focus {
+  border-color: var(--accent);
+}
+.retrieval-source {
+  margin-top: 11px;
+  border-top: 1px solid var(--stroke);
+  padding-top: 11px;
+  font-size: 11px;
+}
+.retrieval-source summary {
+  cursor: pointer;
+  color: var(--text);
+}
+.retrieval-source summary span {
+  font-size: 9px;
+  color: var(--dim);
+  margin-left: 9px;
+}
+.retrieval-source p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.9;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.settings-error {
+  color: var(--danger);
+}
+.accent {
+  color: var(--accent);
+}

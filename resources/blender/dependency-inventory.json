@@ -1,0 +1,362 @@
+[
+  {
+    "name": "altgraph",
+    "version": "0.17.5",
+    "notice_files": [
+      "licenses/altgraph/LICENSE"
+    ]
+  },
+  {
+    "name": "annotated-types",
+    "version": "0.8.0",
+    "notice_files": [
+      "licenses/annotated-types/LICENSE"
+    ]
+  },
+  {
+    "name": "anyio",
+    "version": "4.16.0",
+    "notice_files": [
+      "licenses/anyio/LICENSE"
+    ]
+  },
+  {
+    "name": "attrs",
+    "version": "26.1.0",
+    "notice_files": [
+      "licenses/attrs/LICENSE"
+    ]
+  },
+  {
+    "name": "certifi",
+    "version": "2026.10.23",
+    "notice_files": [
+      "licenses/certifi/LICENSE"
+    ]
+  },
+  {
+    "name": "cffi",
+    "version": "2.1.1",
+    "notice_files": [
+      "licenses/cffi/LICENSE"
+    ]
+  },
+  {
+    "name": "charset-normalizer",
+    "version": "3.5.2",
+    "notice_files": [
+      "licenses/charset-normalizer/LICENSE"
+    ]
+  },
+  {
+    "name": "click",
+    "version": "8.5.0",
+    "notice_files": [
+      "licenses/click/LICENSE.txt"
+    ]
+  },
+  {
+    "name": "cryptography",
+    "version": "50.0.2",
+    "notice_files": [
+      "licenses/cryptography/LICENSE",
+      "licenses/cryptography/LICENSE.APACHE",
+      "licenses/cryptography/LICENSE.BSD"
+    ]
+  },
+  {
+    "name": "exceptiongroup",
+    "version": "1.3.1",
+    "notice_files": [
+      "licenses/exceptiongroup/LICENSE"
+    ]
+  },
+  {
+    "name": "h11",
+    "version": "0.16.0",
+    "notice_files": [
+      "licenses/h11/LICENSE.txt"
+    ]
+  },
+  {
+    "name": "httpcore",
+    "version": "1.0.9",
+    "notice_files": [
+      "licenses/httpcore/LICENSE.md"
+    ]
+  },
+  {
+    "name": "httpx",
+    "version": "0.28.1",
+    "notice_files": [
+      "licenses/httpx/LICENSE.md"
+    ]
+  },
+  {
+    "name": "httpx-sse",
+    "version": "0.4.3",
+    "notice_files": [
+      "licenses/httpx-sse/LICENSE"
+    ]
+  },
+  {
+    "name": "idna",
+    "version": "3.20",
+    "notice_files": [
+      "licenses/idna/LICENSE.md"
+    ]
+  },
+  {
+    "name": "jsonschema",
+    "version": "4.25.1",
+    "notice_files": [
+      "licenses/jsonschema/COPYING"
+    ]
+  },
+  {
+    "name": "jsonschema-specifications",
+    "version": "2025.9.1",
+    "notice_files": [
+      "licenses/jsonschema-specifications/COPYING"
+    ]
+  },
+  {
+    "name": "mcp",
+    "version": "1.26.0",
+    "notice_files": [
+      "licenses/mcp/LICENSE"
+    ]
+  },
+  {
+    "name": "mcp-for-blender",
+    "version": "2.2.7",
+    "notice_files": [
+      "licenses/mcp-for-blender/LICENSE"
+    ]
+  },
+  {
+    "name": "packaging",
+    "version": "26.3",
+    "notice_files": [
+      "licenses/packaging/LICENSE",
+      "licenses/packaging/LICENSE.APACHE",
+      "licenses/packaging/LICENSE.BSD"
+    ]
+  },
+  {
+    "name": "pefile",
+    "version": "2023.2.7",
+    "notice_files": [
+      "licenses/pefile/LICENSE"
+    ]
+  },
+  {
+    "name": "pip",
+    "version": "25.3",
+    "notice_files": [
+      "licenses/pip/LICENSE.txt",
+      "licenses/pip/LICENSE.txt",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE.txt",
+      "licenses/pip/LICENSE.txt",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE.md",
+      "licenses/pip/COPYING",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE.APACHE",
+      "licenses/pip/LICENSE.BSD",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE.txt",
+      "licenses/pip/LICENSE.txt",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE.txt",
+      "licenses/pip/LICENSE.txt",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE.md",
+      "licenses/pip/COPYING",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE.APACHE",
+      "licenses/pip/LICENSE.BSD",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE",
+      "licenses/pip/LICENSE.txt"
+    ]
+  },
+  {
+    "name": "pycparser",
+    "version": "3.11",
+    "notice_files": [
+      "licenses/pycparser/LICENSE"
+    ]
+  },
+  {
+    "name": "pydantic",
+    "version": "2.11.7",
+    "notice_files": [
+      "licenses/pydantic/LICENSE"
+    ]
+  },
+  {
+    "name": "pydantic_core",
+    "version": "2.33.2",
+    "notice_files": [
+      "licenses/pydantic_core/LICENSE"
+    ]
+  },
+  {
+    "name": "pydantic-settings",
+    "version": "2.15.0",
+    "notice_files": [
+      "licenses/pydantic-settings/LICENSE"
+    ]
+  },
+  {
+    "name": "pyinstaller",
+    "version": "6.16.0",
+    "notice_files": []
+  },
+  {
+    "name": "pyinstaller-hooks-contrib",
+    "version": "2026.9",
+    "notice_files": [
+      "licenses/pyinstaller-hooks-contrib/LICENSE"
+    ]
+  },
+  {
+    "name": "PyJWT",
+    "version": "2.15.1",
+    "notice_files": [
+      "licenses/PyJWT/LICENSE"
+    ]
+  },
+  {
+    "name": "python-dotenv",
+    "version": "1.2.4",
+    "notice_files": [
+      "licenses/python-dotenv/LICENSE"
+    ]
+  },
+  {
+    "name": "python-multipart",
+    "version": "0.0.20",
+    "notice_files": [
+      "licenses/python-multipart/LICENSE.txt"
+    ]
+  },
+  {
+    "name": "pywin32",
+    "version": "312",
+    "notice_files": [
+      "licenses/pywin32/license.txt",
+      "licenses/pywin32/License.txt",
+      "licenses/pywin32/Scintilla-License.txt",
+      "licenses/pywin32/LICENSE.txt",
+      "licenses/pywin32/license.txt",
+      "licenses/pywin32/License.txt",
+      "licenses/pywin32/LICENSE",
+      "licenses/pywin32/License.txt",
+      "licenses/pywin32/License.txt",
+      "licenses/pywin32/LICENSE.txt",
+      "licenses/pywin32/License.txt",
+      "licenses/pywin32/License.txt",
+      "licenses/pywin32/License.txt",
+      "licenses/pywin32/License.txt",
+      "licenses/pywin32/MAPIStubLibrary-License.txt"
+    ]
+  },
+  {
+    "name": "pywin32-ctypes",
+    "version": "0.2.3",
+    "notice_files": [
+      "licenses/pywin32-ctypes/LICENSE.txt"
+    ]
+  },
+  {
+    "name": "referencing",
+    "version": "0.37.0",
+    "notice_files": [
+      "licenses/referencing/COPYING"
+    ]
+  },
+  {
+    "name": "requests",
+    "version": "2.32.5",
+    "notice_files": [
+      "licenses/requests/LICENSE"
+    ]
+  },
+  {
+    "name": "rpds-py",
+    "version": "0.30.0",
+    "notice_files": [
+      "licenses/rpds-py/LICENSE"
+    ]
+  },
+  {
+    "name": "setuptools",
+    "version": "65.5.0",
+    "notice_files": [
+      "licenses/setuptools/LICENSE"
+    ]
+  },
+  {
+    "name": "sse-starlette",
+    "version": "3.0.3",
+    "notice_files": [
+      "licenses/sse-starlette/AUTHORS",
+      "licenses/sse-starlette/LICENSE"
+    ]
+  },
+  {
+    "name": "starlette",
+    "version": "0.47.3",
+    "notice_files": [
+      "licenses/starlette/LICENSE.md"
+    ]
+  },
+  {
+    "name": "typing_extensions",
+    "version": "4.16.0",
+    "notice_files": [
+      "licenses/typing_extensions/LICENSE"
+    ]
+  },
+  {
+    "name": "typing-inspection",
+    "version": "0.4.4",
+    "notice_files": [
+      "licenses/typing-inspection/LICENSE"
+    ]
+  },
+  {
+    "name": "urllib3",
+    "version": "2.8.0",
+    "notice_files": [
+      "licenses/urllib3/LICENSE.txt"
+    ]
+  },
+  {
+    "name": "uvicorn",
+    "version": "0.35.0",
+    "notice_files": [
+      "licenses/uvicorn/LICENSE.md"
+    ]
+  }
+]
